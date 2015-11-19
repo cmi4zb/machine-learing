@@ -1,0 +1,82 @@
+---
+title: "Machine Learning Course Project"
+author: "Caroline Iurillo"
+date: "November 19, 2015"
+output: html_document
+---
+goal: The goal of this project is to predict the manner of performing unilateral dumbbell biceps curls based on data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants
+
+
+
+Loading Data and Packages
+```{r}
+train<-read.csv("pml-training.csv", sep= ",", header=TRUE)
+test<-read.csv("pml-testing.csv", sep= ",", header=TRUE)
+
+library(caret)
+set.seed(20)
+
+```
+
+subsetting data to remove columns with many NA's
+
+```{r}
+NAcount <- apply(train,2,function(x) {sum(is.na(x))}) #counts how many NA's are in each column
+training <- train[,which(NAcount == 0)] # only include variables that have no NA's 
+
+NAcount2 <- apply(test,2,function(x) {sum(is.na(x))}) 
+testing<- test[,which(NAcount2 == 0)]
+
+```
+
+removing variables with near zero variance 
+
+```{r}
+nzv <- nearZeroVar(training,saveMetrics=TRUE)
+training1 <- training[,nzv$nzv==FALSE]
+
+nzv <- nearZeroVar(testing,saveMetrics=TRUE)
+testing1 <- testing[,nzv$nzv==FALSE]
+
+```
+
+
+preping for random forest use by making sure data types are the same
+```{r}
+#remove user name - too many level, will mess with random forest
+training2<-training1[c(-2)]#58 columns
+testing2<-testing1[c(-2)]#58 columns
+#remove time variable
+training2<-training2[c(-4)]
+testing2<-testing2[c(-4)]
+#making the same type
+table(sapply(training2[1,], class))
+table(sapply(testing2[1,], class))
+training2[-57] <- lapply(training2[-57], as.numeric)
+training2$classe<-as.factor(training2$classe)
+testing2[-51]<-lapply(testing2[-51],as.numeric)
+```
+
+
+Train and Test set for Cross Validation
+```{r}
+#cross validation, partitioned by classe
+InTrain<-createDataPartition(y=training2$classe,p=.75, list=FALSE)
+traintrain<-training2[InTrain,]
+traintest<-training2[-InTrain,]
+
+```
+
+Random Forest model
+used predict function for in sample error
+From Confusion matrix you can tell the performance is very good.
+```{r}
+
+library(randomForest)
+library(e1071)
+rf<-randomForest(classe~., data=traintrain)
+pred<-predict(rf,traintest)
+
+confusionMatrix(pred,traintest$classe)
+
+```
