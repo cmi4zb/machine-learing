@@ -1,6 +1,6 @@
 ---
 title: "Machine Learning Course Project"
-author: "Caroline Iurillo"
+
 date: "November 19, 2015"
 output: html_document
 ---

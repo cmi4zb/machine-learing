@@ -8,7 +8,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
-<meta name="author" content="Caroline Iurillo" />
 
 <meta name="date" content="2015-11-19" />
 
@@ -63,13 +62,11 @@ img {
 
 <div id="header">
 <h1 class="title">Machine Learning Course Project</h1>
-<h4 class="author"><em>Caroline Iurillo</em></h4>
 <h4 class="date"><em>November 19, 2015</em></h4>
 </div>
 
 
-<p>This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
-<p>When you click the <strong>Knit</strong> button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
+<p>goal: The goal of this project is to predict the manner of performing unilateral dumbbell biceps curls based on data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants</p>
 <p>Loading Data and Packages</p>
 <pre class="r"><code>train&lt;-read.csv(&quot;pml-training.csv&quot;, sep= &quot;,&quot;, header=TRUE)
 test&lt;-read.csv(&quot;pml-testing.csv&quot;, sep= &quot;,&quot;, header=TRUE)
@@ -87,13 +84,10 @@ testing&lt;- test[,which(NAcount2 == 0)]</code></pre>
 <p>removing variables with near zero variance</p>
 <pre class="r"><code>nzv &lt;- nearZeroVar(training,saveMetrics=TRUE)
 training1 &lt;- training[,nzv$nzv==FALSE]
-ncol(training1) </code></pre>
-<pre><code>## [1] 59</code></pre>
-<pre class="r"><code>nzv &lt;- nearZeroVar(testing,saveMetrics=TRUE)
-testing1 &lt;- testing[,nzv$nzv==FALSE]
-ncol(testing1)</code></pre>
-<pre><code>## [1] 59</code></pre>
-<p>preping for random forest use</p>
+
+nzv &lt;- nearZeroVar(testing,saveMetrics=TRUE)
+testing1 &lt;- testing[,nzv$nzv==FALSE]</code></pre>
+<p>preping for random forest use by making sure data types are the same</p>
 <pre class="r"><code>#remove user name - too many level, will mess with random forest
 training2&lt;-training1[c(-2)]#58 columns
 testing2&lt;-testing1[c(-2)]#58 columns
@@ -117,7 +111,7 @@ testing2[-51]&lt;-lapply(testing2[-51],as.numeric)</code></pre>
 InTrain&lt;-createDataPartition(y=training2$classe,p=.75, list=FALSE)
 traintrain&lt;-training2[InTrain,]
 traintest&lt;-training2[-InTrain,]</code></pre>
-<p>Random Forest</p>
+<p>Random Forest model used predict function for in sample error From Confusion matrix you can tell the performance is very good.</p>
 <pre class="r"><code>library(randomForest)</code></pre>
 <pre><code>## randomForest 4.6-12
 ## Type rfNews() to see new features/changes/bug fixes.</code></pre>
@@ -125,11 +119,7 @@ traintest&lt;-training2[-InTrain,]</code></pre>
 rf&lt;-randomForest(classe~., data=traintrain)
 pred&lt;-predict(rf,traintest)
 
-levels(pred)</code></pre>
-<pre><code>## [1] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot; &quot;E&quot;</code></pre>
-<pre class="r"><code>levels(traintrain$classe)</code></pre>
-<pre><code>## [1] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot; &quot;E&quot;</code></pre>
-<pre class="r"><code>confusionMatrix(pred,traintest$classe)</code></pre>
+confusionMatrix(pred,traintest$classe)</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
